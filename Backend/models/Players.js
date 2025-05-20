@@ -53,6 +53,10 @@ const playerSchema = new mongoose.Schema(
         default: 0,
       },
     },
+    isAdmin: {
+      type: Boolean,
+      default: false,
+    },
   },
   {
     timestamps: true, // adds createdAt and updatedAt

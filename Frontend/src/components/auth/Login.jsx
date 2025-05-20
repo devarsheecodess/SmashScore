@@ -6,7 +6,7 @@ const Login = () => {
     const [formData, setFormData] = useState({})
     const [error, setError] = useState(null)
     const [loading, setLoading] = useState(false)
-    const BACKEND_URL = import.meta.env.VITE_BACKEND_UR
+    const BACKEND_URL = import.meta.env.VITE_BACKEND_URI
 
     const handleChange = (e) => {
         const { name, value } = e.target
@@ -27,6 +27,7 @@ const Login = () => {
             localStorage.setItem('userID', response.data.id)
             localStorage.setItem('username', response.data.username)
             localStorage.setItem('profilePic', response.data.profilePic)
+            localStorage.setItem('isAdmin', response.data.isAdmin)
             window.location.href = '/home'
         } catch (err) {
             console.error('Error logging in:', err)

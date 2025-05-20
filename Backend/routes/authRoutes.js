@@ -39,13 +39,14 @@ router.post("/signup", upload.single("profilePic"), async (req, res) => {
     });
 
     await newPlayer.save();
-    res
-      .status(201)
-      .json({
-        message: "Signup successful",
-        player: newPlayer,
-        _id: newPlayer._id,
-      });
+    res.status(201).json({
+      message: "Signup successful",
+      player: newPlayer,
+      _id: newPlayer._id,
+      username: newPlayer.username,
+      profilePic: newPlayer.profilePic,
+      isAdmin: newPlayer.isAdmin || false,
+    });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Signup failed", error: error.message });
@@ -56,6 +57,8 @@ router.post("/signup", upload.single("profilePic"), async (req, res) => {
 router.post("/login", async (req, res) => {
   try {
     const { username, password } = req.body;
+    console.log("Login attempt with username:", username);
+    console.log("Login attempt with password:", password);
 
     // Find user by username
     const player = await Player.findOne({ username });
@@ -75,10 +78,31 @@ router.post("/login", async (req, res) => {
       username: player.username,
       id: player._id,
       profilePic: player.profilePic,
+      isAdmin: player.isAdmin || false,
     });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Login failed", error: error.message });
+  }
+});
+
+// Check if user is an admin
+router.get("/checkAdmin", async (req, res) => {
+  try {
+    const playerId = req.query.id;
+
+    const player = await Player.findById(playerId);
+    if (!player) {
+      return res.status(404).json({ message: "Player not found" });
+    }
+
+    const isAdmin = player.isAdmin || false;
+    res.status(200).json({ isAdmin });
+  } catch (error) {
+    console.error(error);
+    res
+      .status(500)
+      .json({ message: "Error checking admin status", error: error.message });
   }
 });
 

@@ -102,7 +102,7 @@ const Home = () => {
                 <div className="hidden md:flex items-center space-x-6">
                     {
                         isAdmin == "true" && (
-                            <button onClick={() => window.location.href = "/admin/dashboard"} className="flex items-center space-x-2 text-gray-300 hover:text-green-500">
+                            <button onClick={() => window.location.href = "/admin"} className="flex items-center space-x-2 text-gray-300 hover:text-green-500">
                                 <ShieldAlert size={18} />
                                 <span>Admin</span>
                             </button>

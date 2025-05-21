@@ -28,6 +28,7 @@ const Login = () => {
             localStorage.setItem('username', response.data.username)
             localStorage.setItem('profilePic', response.data.profilePic)
             localStorage.setItem('isAdmin', response.data.isAdmin)
+            localStorage.setItem('name', response.data.name)
             window.location.href = '/home'
         } catch (err) {
             console.error('Error logging in:', err)

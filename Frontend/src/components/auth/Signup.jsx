@@ -36,6 +36,7 @@ const Signup = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        setLoading(true);
 
         const data = new FormData();
         data.append("profilePic", formData.profilePic);
@@ -56,10 +57,12 @@ const Signup = () => {
             console.log("Signup response:", response);
             if (response.status === 201) {
                 alert("Signup successful!");
+                console.log("Signup successful:", response.data);
                 localStorage.setItem('userID', response.data._id);
                 localStorage.setItem('username', data.username);
                 localStorage.setItem('profilePic', data.profilePic);
                 window.location.href = '/home';
+                setLoading(false);
             } else {
                 alert("Signup failed");
             }

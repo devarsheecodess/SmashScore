@@ -43,9 +43,10 @@ router.post("/signup", upload.single("profilePic"), async (req, res) => {
       message: "Signup successful",
       player: newPlayer,
       _id: newPlayer._id,
-      username: newPlayer.username,
-      profilePic: newPlayer.profilePic,
+      username: req.body.username,
+      profilePic: req.body.profilePic,
       isAdmin: newPlayer.isAdmin || false,
+      name: player.name,
     });
   } catch (error) {
     console.error(error);
@@ -79,6 +80,7 @@ router.post("/login", async (req, res) => {
       id: player._id,
       profilePic: player.profilePic,
       isAdmin: player.isAdmin || false,
+      name: player.name,
     });
   } catch (error) {
     console.error(error);

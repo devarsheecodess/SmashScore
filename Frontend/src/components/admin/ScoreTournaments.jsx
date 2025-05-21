@@ -5,7 +5,8 @@ const ScoreTournaments = () => {
         <div>
             <h1 className="text-3xl font-bold text-center mt-10">Score Tournaments</h1>
             <div className="flex justify-center mt-5">
-                <form className="w-full max-w-sm">
+                <h1>Under Development</h1>
+                {/* <form className="w-full max-w-sm">
                     <div className="mb-4">
                         <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="tournamentId">
                             Tournament ID
@@ -23,7 +24,7 @@ const ScoreTournaments = () => {
                     >
                         Score Tournament
                     </button>
-                </form>
+                </form> */}
             </div>
         </div>
     )

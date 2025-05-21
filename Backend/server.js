@@ -21,8 +21,10 @@ app.get("/", (req, res) => {
 
 // Routes
 const authRoutes = require("./routes/authRoutes");
+const matchRoutes = require("./routes/matchRoutes");
 
 app.use("/auth", authRoutes);
+app.use("/matches", matchRoutes);
 
 // Start server
 app.listen(port, () => {

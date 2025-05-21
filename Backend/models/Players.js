@@ -40,6 +40,14 @@ const playerSchema = new mongoose.Schema(
       required: true,
     },
     stats: {
+      singles: {
+        type: Number,
+        default: 0,
+      },
+      doubles: {
+        type: Number,
+        default: 0,
+      },
       wins: {
         type: Number,
         default: 0,
@@ -48,7 +56,19 @@ const playerSchema = new mongoose.Schema(
         type: Number,
         default: 0,
       },
-      matchesPlayed: {
+      totalpoints: {
+        type: Number,
+        default: 0,
+      },
+      winrate: {
+        type: Number,
+        default: 0,
+      },
+      bestMatch: {
+        type: String,
+        default: "",
+      },
+      rank: {
         type: Number,
         default: 0,
       },

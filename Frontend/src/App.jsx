@@ -12,6 +12,7 @@ import Dashboard from './components/admin/Dashboard';
 import AddMatches from './components/admin/AddMatches';
 import ScoreMatches from './components/admin/ScoreMatches';
 import ScoreTournaments from './components/admin/ScoreTournaments';
+import Profile from './components/Profile';
 
 const router = createBrowserRouter([
   {
@@ -29,6 +30,10 @@ const router = createBrowserRouter([
   {
     path: "/signup",
     element: <Signup />,
+  },
+  {
+    path: "/profile",
+    element: <Profile />,
   },
   {
     path: "/admin",

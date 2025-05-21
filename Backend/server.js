@@ -22,9 +22,11 @@ app.get("/", (req, res) => {
 // Routes
 const authRoutes = require("./routes/authRoutes");
 const matchRoutes = require("./routes/matchRoutes");
+const userRoutes = require("./routes/UserRoutes");
 
 app.use("/auth", authRoutes);
 app.use("/matches", matchRoutes);
+app.use("/users", userRoutes);
 
 // Start server
 app.listen(port, () => {

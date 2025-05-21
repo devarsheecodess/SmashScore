@@ -1,6 +1,9 @@
 import React, { useEffect, useState } from 'react';
+import axios from 'axios';
+import { Home } from 'lucide-react'
 
 const Profile = () => {
+    const BACKEND_URL = import.meta.env.VITE_BACKEND_URI;
     // Mock user data - this would typically come from your application state or API
     const [user, setUser] = useState({
         fullName: "John Doe",
@@ -8,24 +11,55 @@ const Profile = () => {
         email: "john@example.com",
         age: "25",
         gender: "Male",
-        profilePicture: null,
+        profilePic: null,
         // Player statistics
         stats: {
-            singleMatches: 42,
-            doubleMatches: 18,
-            matchesWon: 37,
-            matchesLost: 23,
-            totalPointsScored: 1248,
+            singleMatches: 0,
+            doubleMatches: 0,
+            matchesWon: 0,
+            matchesLost: 0,
+            totalPointsScored: 0,
             winRate: 0, // Percentage
-            bestMatch: "vs. ProPlayer123 (21-18, 21-16)",
-            playerRank: 8 // Global ranking
+            bestMatch: "",
+            playerRank: 0 // Global ranking
         }
     });
+
+    const fetchUserData = async () => {
+        try {
+            const response = await axios.get(`${BACKEND_URL}/users/profile?id=${localStorage.getItem("userID")}`);
+            const userData = response.data;
+            setUser((prevUser) => ({
+                ...prevUser,
+                ...userData,
+                fullName: userData.name,
+                stats: {
+                    ...prevUser.stats,
+                    singleMatches: userData.stats.singles,
+                    doubleMatches: userData.stats.doubles,
+                    matchesWon: userData.stats.wins,
+                    matchesLost: userData.stats.losses,
+                    totalPointsScored: userData.stats.totalpoints,
+                    bestMatch: userData.bestMatch || "Play matches to see your best match",
+                    playerRank: userData.playerRank
+                }
+            }));
+
+            calculateWinRate();
+        } catch (error) {
+            console.error("Error fetching user data:", error);
+        }
+    }
+
+    useEffect(() => {
+        fetchUserData();
+    }, []);
 
     const calculateWinRate = () => {
         const totalMatches = user.stats.matchesWon + user.stats.matchesLost;
         if (totalMatches === 0) return 0;
         const winrate = ((user.stats.matchesWon / totalMatches) * 100).toFixed(2)
+        console.log(totalMatches, user.stats.matchesWon, user.stats.matchesLost, winrate);
         setUser((prevUser) => ({
             ...prevUser,
             stats: {
@@ -34,10 +68,6 @@ const Profile = () => {
             }
         }));
     };
-
-    useEffect(() => {
-        calculateWinRate();
-    }, [user.stats.matchesWon, user.stats.matchesLost]);
 
     const [showPasswordModal, setShowPasswordModal] = useState(false);
     const [passwordData, setPasswordData] = useState({
@@ -48,7 +78,6 @@ const Profile = () => {
     const [passwordError, setPasswordError] = useState("");
     const [passwordSuccess, setPasswordSuccess] = useState("");
     const [isEditing, setIsEditing] = useState(false);
-    const [editedUser, setEditedUser] = useState({ ...user });
 
     const handlePasswordChange = (e) => {
         const { name, value } = e.target;
@@ -58,58 +87,47 @@ const Profile = () => {
         });
     };
 
-    const handlePasswordUpdate = (e) => {
+    const handlePasswordUpdate = async (e) => {
         if (e) e.preventDefault();
-
-        // Reset messages
-        setPasswordError("");
-        setPasswordSuccess("");
-
-        // Basic validation
-        if (passwordData.newPassword.length < 6) {
-            setPasswordError("Password must be at least 6 characters");
-            return;
-        }
-
-        if (passwordData.newPassword !== passwordData.confirmPassword) {
-            setPasswordError("Passwords do not match");
-            return;
-        }
-
-        // Here you would typically call an API to update the password
-        // For this example, we'll just simulate success
-        setPasswordSuccess("Password updated successfully!");
-
-        // Clear form
-        setPasswordData({
-            currentPassword: "",
-            newPassword: "",
-            confirmPassword: ""
-        });
-
-        // Close modal after a delay
-        setTimeout(() => {
-            setShowPasswordModal(false);
+        try {
+            // Reset messages
+            setPasswordError("");
             setPasswordSuccess("");
-        }, 2000);
-    };
 
-    const handleUserDataChange = (e) => {
-        const { name, value } = e.target;
-        setEditedUser({
-            ...editedUser,
-            [name]: value
-        });
-    };
+            // Basic validation
+            if (passwordData.newPassword.length < 6) {
+                setPasswordError("Password must be at least 6 characters");
+                return;
+            }
 
-    const saveProfileChanges = () => {
-        setUser({ ...editedUser });
-        setIsEditing(false);
-    };
+            if (passwordData.newPassword !== passwordData.confirmPassword) {
+                setPasswordError("Passwords do not match");
+                return;
+            }
 
-    const cancelEditing = () => {
-        setEditedUser({ ...user });
-        setIsEditing(false);
+            const response = await axios.put(`${BACKEND_URL}/users/updatePassword`, {
+                id: localStorage.getItem("userID"),
+                currentPassword: passwordData.currentPassword,
+                newPassword: passwordData.newPassword
+            })
+
+            setPasswordSuccess("Password updated successfully!");
+
+            // Clear form
+            setPasswordData({
+                currentPassword: "",
+                newPassword: "",
+                confirmPassword: ""
+            });
+
+            // Close modal after a delay
+            setTimeout(() => {
+                setShowPasswordModal(false);
+                setPasswordSuccess("");
+            }, 2000);
+        } catch (error) {
+            alert("Current password is incorrect");
+        }
     };
 
     // Calculate matches total for progress bar
@@ -123,28 +141,15 @@ const Profile = () => {
                 <div className="bg-gray-700 py-4 px-4 sm:py-6 sm:px-6 text-center relative">
                     <h1 className="text-xl sm:text-2xl font-bold">Your Profile</h1>
                     <p className="text-gray-400 text-sm sm:text-base mt-1">View and manage your account details</p>
-
-                    {/* Edit profile button - visible only when not editing */}
-                    {!isEditing && (
-                        <button
-                            onClick={() => setIsEditing(true)}
-                            className="absolute right-4 top-4 bg-blue-600 hover:bg-blue-700 text-white p-2 rounded-full"
-                            aria-label="Edit profile"
-                        >
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 sm:h-5 sm:w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-                            </svg>
-                        </button>
-                    )}
                 </div>
 
                 {/* Profile Picture */}
                 <div className="flex justify-center -mt-8 sm:-mt-10">
                     <div className="relative">
                         <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-gray-600 border-4 border-gray-800 flex items-center justify-center overflow-hidden">
-                            {user.profilePicture ? (
+                            {user.profilePic ? (
                                 <img
-                                    src={user.profilePicture}
+                                    src={user.profilePic}
                                     alt="Profile"
                                     className="w-full h-full object-cover"
                                 />
@@ -167,117 +172,34 @@ const Profile = () => {
 
                 {/* Profile Info */}
                 <div className="p-4 sm:p-6 pt-2">
-                    {/* Edit mode actions */}
-                    {isEditing && (
-                        <div className="flex justify-end space-x-2 mb-4">
-                            <button
-                                onClick={cancelEditing}
-                                className="py-1 px-3 bg-gray-600 hover:bg-gray-700 rounded-md text-white text-sm transition-colors duration-300"
-                            >
-                                Cancel
-                            </button>
-                            <button
-                                onClick={saveProfileChanges}
-                                className="py-1 px-3 bg-green-600 hover:bg-green-700 rounded-md text-white text-sm transition-colors duration-300"
-                            >
-                                Save Changes
-                            </button>
-                        </div>
-                    )}
-
                     {/* User Information Section */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
-                        {isEditing ? (
-                            // Edit Mode - Display input fields
-                            <>
-                                <div className="space-y-1">
-                                    <label className="block text-gray-400 text-sm">Full Name</label>
-                                    <input
-                                        type="text"
-                                        name="fullName"
-                                        value={editedUser.fullName}
-                                        onChange={handleUserDataChange}
-                                        className="w-full bg-gray-700 border border-gray-600 rounded-md py-1 px-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-600"
-                                    />
-                                </div>
+                        <>
+                            <div className="space-y-1">
+                                <p className="text-gray-400 text-xs sm:text-sm">Full Name</p>
+                                <p className="font-medium text-sm sm:text-base">{user.fullName}</p>
+                            </div>
 
-                                <div className="space-y-1">
-                                    <label className="block text-gray-400 text-sm">Username</label>
-                                    <input
-                                        type="text"
-                                        name="username"
-                                        value={editedUser.username}
-                                        onChange={handleUserDataChange}
-                                        className="w-full bg-gray-700 border border-gray-600 rounded-md py-1 px-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-600"
-                                    />
-                                </div>
+                            <div className="space-y-1">
+                                <p className="text-gray-400 text-xs sm:text-sm">Username</p>
+                                <p className="font-medium text-sm sm:text-base">{user.username}</p>
+                            </div>
 
-                                <div className="space-y-1">
-                                    <label className="block text-gray-400 text-sm">Email</label>
-                                    <input
-                                        type="email"
-                                        name="email"
-                                        value={editedUser.email}
-                                        onChange={handleUserDataChange}
-                                        className="w-full bg-gray-700 border border-gray-600 rounded-md py-1 px-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-600"
-                                    />
-                                </div>
+                            <div className="space-y-1">
+                                <p className="text-gray-400 text-xs sm:text-sm">Email</p>
+                                <p className="font-medium text-sm sm:text-base">{user.email}</p>
+                            </div>
 
-                                <div className="space-y-1">
-                                    <label className="block text-gray-400 text-sm">Age</label>
-                                    <input
-                                        type="text"
-                                        name="age"
-                                        value={editedUser.age}
-                                        onChange={handleUserDataChange}
-                                        className="w-full bg-gray-700 border border-gray-600 rounded-md py-1 px-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-600"
-                                    />
-                                </div>
+                            <div className="space-y-1">
+                                <p className="text-gray-400 text-xs sm:text-sm">Age</p>
+                                <p className="font-medium text-sm sm:text-base">{user.age}</p>
+                            </div>
 
-                                <div className="space-y-1">
-                                    <label className="block text-gray-400 text-sm">Gender</label>
-                                    <select
-                                        name="gender"
-                                        value={editedUser.gender}
-                                        onChange={handleUserDataChange}
-                                        className="w-full bg-gray-700 border border-gray-600 rounded-md py-1 px-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-600"
-                                    >
-                                        <option value="Male">Male</option>
-                                        <option value="Female">Female</option>
-                                        <option value="Non-binary">Non-binary</option>
-                                        <option value="Prefer not to say">Prefer not to say</option>
-                                    </select>
-                                </div>
-                            </>
-                        ) : (
-                            // View Mode - Display user data
-                            <>
-                                <div className="space-y-1">
-                                    <p className="text-gray-400 text-xs sm:text-sm">Full Name</p>
-                                    <p className="font-medium text-sm sm:text-base">{user.fullName}</p>
-                                </div>
-
-                                <div className="space-y-1">
-                                    <p className="text-gray-400 text-xs sm:text-sm">Username</p>
-                                    <p className="font-medium text-sm sm:text-base">{user.username}</p>
-                                </div>
-
-                                <div className="space-y-1">
-                                    <p className="text-gray-400 text-xs sm:text-sm">Email</p>
-                                    <p className="font-medium text-sm sm:text-base">{user.email}</p>
-                                </div>
-
-                                <div className="space-y-1">
-                                    <p className="text-gray-400 text-xs sm:text-sm">Age</p>
-                                    <p className="font-medium text-sm sm:text-base">{user.age}</p>
-                                </div>
-
-                                <div className="space-y-1">
-                                    <p className="text-gray-400 text-xs sm:text-sm">Gender</p>
-                                    <p className="font-medium text-sm sm:text-base">{user.gender}</p>
-                                </div>
-                            </>
-                        )}
+                            <div className="space-y-1">
+                                <p className="text-gray-400 text-xs sm:text-sm">Gender</p>
+                                <p className="font-medium text-sm sm:text-base">{user.gender}</p>
+                            </div>
+                        </>
                     </div>
 
                     {/* Player Statistics */}
@@ -373,12 +295,11 @@ const Profile = () => {
                             Update Password
                         </button>
                         <button
+                            onClick={() => window.location.href = '/home'}
                             className="py-2 sm:py-3 bg-blue-600 hover:bg-blue-700 rounded-md text-white font-medium text-sm sm:text-base transition-colors duration-300 flex items-center justify-center"
                         >
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                            </svg>
-                            Match History
+                            <Home className="h-4 w-4 mr-2" />
+                            Go to Home
                         </button>
                     </div>
                 </div>

@@ -100,6 +100,8 @@ router.get("/upcoming", async (req, res) => {
           type: match.type,
           player1: match.player1,
           player2: match.player2,
+          player1ID: match.player1ID,
+          player2ID: match.player2ID,
           date: match.date,
           time: match.time,
           totalPoints: match.totalPoints,
@@ -144,7 +146,7 @@ router.get("/myMatches", async (req, res) => {
         { team1PlayersID: { $in: [id] } },
         { team2PlayersID: { $in: [id] } },
       ],
-    });
+    }).sort({ date: -1 }); // Sort by date descending
 
     const matchesWithAvatars = await Promise.all(
       matches.map(async (match) => {
@@ -179,21 +181,48 @@ router.get("/myMatches", async (req, res) => {
 });
 
 router.post("/score-singles", async (req, res) => {
-  const { matchId, score, winner } = req.body;
-  console.log("Received data:", req.body);
+  const {
+    matchId,
+    looserID,
+    winnerID,
+    looserPoints,
+    winnerPoints,
+    score,
+    winner,
+  } = req.body;
 
   if (!matchId || !score || !winner) {
     return res.status(400).json({ message: "Missing required fields" });
   }
 
   try {
+    const looser = await Player.findById(looserID);
+    const winnerr = await Player.findById(winnerID);
+
+    if (!looser || !winnerr) {
+      return res.status(404).json({ message: "Player(s) not found" });
+    }
+
+    // Update stats
+    looser.stats.losses += 1;
+    winnerr.stats.wins += 1;
+    looser.stats.points += looserPoints;
+    winnerr.stats.points += winnerPoints;
+    looser.stats.singles += 1;
+    winnerr.stats.singles += 1;
+
+    // Save updated players
+    await looser.save();
+    await winnerr.save();
+
+    // Update match
     const match = await Match.findById(matchId);
     if (!match) {
       return res.status(404).json({ message: "Match not found" });
     }
 
-    match.score = score; // e.g., "11-9"
-    match.winner = winner; // e.g., "Devarshee"
+    match.score = score;
+    match.winner = winner;
     match.status = "Completed";
 
     await match.save();

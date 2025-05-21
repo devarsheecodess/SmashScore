@@ -196,11 +196,21 @@ const ScoreMatches = () => {
         console.log(matchId, scoreString, winner);
 
         try {
+            console.log()
+            const looserID = player1Score > player2Score ? selectedMatch.player2ID : selectedMatch.player1ID
+            const winnerID = player1Score > player2Score ? selectedMatch.player1ID : selectedMatch.player2ID
+
+            console.log("looserID", looserID)
+            console.log("winnerID", winnerID)
             // POST to backend with match result
-            await axios.post(`${BACKEND_URL}/matches/score-singles`, {
+            const response = await axios.post(`${BACKEND_URL}/matches/score-singles`, {
                 matchId,
                 score: scoreString,
                 winner,
+                looserID: player1Score > player2Score ? selectedMatch.player2ID : selectedMatch.player1ID,
+                winnerID: player1Score > player2Score ? selectedMatch.player1ID : selectedMatch.player2ID,
+                looserPoints: player1Score > player2Score ? player2Score : player1Score,
+                winnerPoints: player1Score > player2Score ? player1Score : player2Score,
             });
 
             // Update local matches state

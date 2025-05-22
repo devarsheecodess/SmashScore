@@ -77,23 +77,22 @@ router.post("/addMatch", async (req, res) => {
 
 router.get("/upcoming", async (req, res) => {
   try {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0); // start of today
-
-    const tomorrow = new Date(today);
-    tomorrow.setDate(tomorrow.getDate() + 1); // start of tomorrow
+    const now = new Date(); // current time
+    const next24Hours = new Date(now.getTime() + 24 * 60 * 60 * 1000); // +24 hours
 
     const matches = await Match.find({
       date: {
-        $gte: today,
-        $lt: tomorrow,
+        $gte: now,
+        $lt: next24Hours,
       },
     });
 
-    let matchesWithAvatars = await Promise.all(
+    const matchesWithAvatars = await Promise.all(
       matches.map(async (match) => {
-        const player1Avatar = await Player.findById(match.player1ID);
-        const player2Avatar = await Player.findById(match.player2ID);
+        const [player1, player2] = await Promise.all([
+          Player.findById(match.player1ID).lean(),
+          Player.findById(match.player2ID).lean(),
+        ]);
 
         return {
           id: match._id,
@@ -108,26 +107,22 @@ router.get("/upcoming", async (req, res) => {
           status: match.status,
           winner: match.winner,
           score: match.score,
-          player1Avatar: player1Avatar ? player1Avatar.profilePic : null,
-          player2Avatar: player2Avatar ? player2Avatar.profilePic : null,
+          player1Avatar: player1?.profilePic || null,
+          player2Avatar: player2?.profilePic || null,
         };
       })
     );
 
-    // Sort by date + time descending (JS-side sort)
+    // Sort matches by date + time (ascending)
     matchesWithAvatars.sort((a, b) => {
-      const aDateTime = new Date(
-        `${a.date.toISOString().split("T")[0]}T${a.time}`
-      );
-      const bDateTime = new Date(
-        `${b.date.toISOString().split("T")[0]}T${b.time}`
-      );
-      return bDateTime - aDateTime; // descending
+      const aTime = new Date(a.date).getTime();
+      const bTime = new Date(b.date).getTime();
+      return aTime - bTime;
     });
 
     res.status(200).json({ matches: matchesWithAvatars });
   } catch (err) {
-    console.error("Error fetching today's matches:", err);
+    console.error("Error fetching upcoming matches:", err.message, err.stack);
     res.status(500).json({ message: "Internal server error" });
   }
 });

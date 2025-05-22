@@ -201,8 +201,8 @@ router.post("/score-singles", async (req, res) => {
     // Update stats
     looser.stats.losses += 1;
     winnerr.stats.wins += 1;
-    looser.stats.points += looserPoints;
-    winnerr.stats.points += winnerPoints;
+    looser.stats.totalpoints += looserPoints;
+    winnerr.stats.totalpoints += winnerPoints;
     looser.stats.singles += 1;
     winnerr.stats.singles += 1;
 

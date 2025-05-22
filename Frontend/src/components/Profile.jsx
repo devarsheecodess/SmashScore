@@ -44,8 +44,6 @@ const Profile = () => {
                     playerRank: userData.playerRank
                 }
             }));
-
-            calculateWinRate();
         } catch (error) {
             console.error("Error fetching user data:", error);
         }
@@ -54,6 +52,10 @@ const Profile = () => {
     useEffect(() => {
         fetchUserData();
     }, []);
+
+    useEffect(() => {
+        calculateWinRate();
+    }, [user.stats.matchesWon, user.stats.matchesLost]);
 
     const calculateWinRate = () => {
         const totalMatches = user.stats.matchesWon + user.stats.matchesLost;

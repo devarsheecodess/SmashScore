@@ -55,7 +55,7 @@ router.post("/addMatch", async (req, res) => {
       team1PlayersID,
       team2Players,
       team2PlayersID,
-      date: new Date(date),
+      date: new Date(),
       time,
       totalPoints: Number(totalPoints),
       description,
@@ -78,11 +78,12 @@ router.post("/addMatch", async (req, res) => {
 router.get("/upcoming", async (req, res) => {
   try {
     const now = new Date(); // current time
+    const before24Hours = new Date(now.getTime() - 24 * 60 * 60 * 1000); // -24 hours
     const next24Hours = new Date(now.getTime() + 24 * 60 * 60 * 1000); // +24 hours
 
     const matches = await Match.find({
       date: {
-        $gte: now,
+        $gte: before24Hours,
         $lt: next24Hours,
       },
     });

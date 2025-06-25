@@ -13,6 +13,7 @@ import AddMatches from './components/admin/AddMatches';
 import ScoreMatches from './components/admin/ScoreMatches';
 import ScoreTournaments from './components/admin/ScoreTournaments';
 import Profile from './components/Profile';
+import Leaderboard from './components/Leaderboard';
 
 const router = createBrowserRouter([
   {
@@ -22,6 +23,10 @@ const router = createBrowserRouter([
   {
     path: "/home",
     element: <Home />,
+  },
+  {
+    path: "/leaderboard",
+    element: <Leaderboard />,
   },
   {
     path: "/login",

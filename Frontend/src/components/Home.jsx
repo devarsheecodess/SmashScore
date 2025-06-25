@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Calendar, Trophy, User, CheckSquare, LogOut, Menu, X, Plus, ShieldAlert } from 'lucide-react';
+import { Calendar, Trophy, User, CheckSquare, LogOut, Menu, X, Plus, ShieldAlert, Crown } from 'lucide-react';
 import axios from 'axios';
 
 // Helper function to get initials from a name
@@ -326,14 +326,14 @@ const Home = () => {
                 {/* Status indicator line */}
                 <div
                     className={`absolute top-0 left-0 h-1 w-full ${match.status === "Completed"
-                            ? isCurrentPlayerWinner
-                                ? 'bg-green-500'
-                                : isCurrentPlayerLoser
-                                    ? 'bg-red-500'
-                                    : 'bg-gray-500' // neutral color for completed matches where user isn't a player
-                            : match.status === "Scheduled"
-                                ? 'bg-blue-500'
-                                : 'bg-yellow-500'
+                        ? isCurrentPlayerWinner
+                            ? 'bg-green-500'
+                            : isCurrentPlayerLoser
+                                ? 'bg-red-500'
+                                : 'bg-gray-500' // neutral color for completed matches where user isn't a player
+                        : match.status === "Scheduled"
+                            ? 'bg-blue-500'
+                            : 'bg-yellow-500'
                         }`}
                 />
 
@@ -405,14 +405,14 @@ const Home = () => {
                     {/* Fix 3: Improved Result Badge */}
                     <div
                         className={`text-white text-xs font-medium px-3 py-1 rounded-full flex items-center gap-1 ${match.status === "Completed"
-                                ? isCurrentPlayerWinner
-                                    ? 'bg-green-700 text-green-100'
-                                    : isCurrentPlayerLoser
-                                        ? 'bg-red-700 text-red-100'
-                                        : 'bg-gray-700 text-gray-100'
-                                : match.status === "Scheduled"
-                                    ? 'bg-blue-700 text-blue-100'
-                                    : 'bg-yellow-700 text-yellow-100'
+                            ? isCurrentPlayerWinner
+                                ? 'bg-green-700 text-green-100'
+                                : isCurrentPlayerLoser
+                                    ? 'bg-red-700 text-red-100'
+                                    : 'bg-gray-700 text-gray-100'
+                            : match.status === "Scheduled"
+                                ? 'bg-blue-700 text-blue-100'
+                                : 'bg-yellow-700 text-yellow-100'
                             }`}
                     >
                         {match.status === "Completed" && (
@@ -541,6 +541,13 @@ const Home = () => {
                         </button>
                     )}
                     <div
+                        onClick={() => navigateTo('/leaderboard')}
+                        className="flex items-center space-x-2 text-gray-300 hover:text-green-500 cursor-pointer transition-colors"
+                    >
+                        <Crown size={18} />
+                        <span>Leaderboard</span>
+                    </div>
+                    <div
                         onClick={() => navigateTo('/profile')}
                         className="flex items-center space-x-2 text-gray-300 hover:text-green-500 cursor-pointer transition-colors"
                     >
@@ -594,6 +601,13 @@ const Home = () => {
                             </button>
                         )}
 
+                        <button
+                            onClick={() => navigateTo('/leaderboard')}
+                            className="flex items-center space-x-3 text-gray-300 hover:text-green-500 hover:bg-gray-700 p-3 rounded-lg transition-colors"
+                        >
+                            <Crown size={18} />
+                            <span>Leaderboard</span>
+                        </button>
                         <button
                             onClick={() => navigateTo('/profile')}
                             className="flex items-center space-x-3 text-gray-300 hover:text-green-500 hover:bg-gray-700 p-3 rounded-lg transition-colors"

@@ -74,6 +74,10 @@ const matchSchema = new mongoose.Schema(
       type: String,
       trim: true,
     },
+    margin: {
+      type: String,
+      trim: true,
+    },
   },
   { timestamps: true }
 );

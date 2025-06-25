@@ -6,11 +6,11 @@ const Profile = () => {
     const BACKEND_URL = import.meta.env.VITE_BACKEND_URI;
     // Mock user data - this would typically come from your application state or API
     const [user, setUser] = useState({
-        fullName: "John Doe",
-        username: "john_smash",
-        email: "john@example.com",
-        age: "25",
-        gender: "Male",
+        fullName: "",
+        username: "",
+        email: "",
+        age: "",
+        gender: "",
         profilePic: null,
         // Player statistics
         stats: {
@@ -21,6 +21,7 @@ const Profile = () => {
             totalPointsScored: 0,
             winRate: 0, // Percentage
             bestMatch: "",
+            bestMatchScore: "", // Score of the best match
             playerRank: 0 // Global ranking
         }
     });
@@ -51,6 +52,8 @@ const Profile = () => {
 
     useEffect(() => {
         fetchUserData();
+        findBestMatch();
+        fetchRank();
     }, []);
 
     useEffect(() => {
@@ -61,7 +64,6 @@ const Profile = () => {
         const totalMatches = user.stats.matchesWon + user.stats.matchesLost;
         if (totalMatches === 0) return 0;
         const winrate = ((user.stats.matchesWon / totalMatches) * 100).toFixed(2)
-        console.log(totalMatches, user.stats.matchesWon, user.stats.matchesLost, winrate);
         setUser((prevUser) => ({
             ...prevUser,
             stats: {
@@ -70,6 +72,47 @@ const Profile = () => {
             }
         }));
     };
+
+    const findBestMatch = async () => {
+        try {
+            const response = await axios.post(`${BACKEND_URL}/matches/bestMatch`, {
+                playerId: localStorage.getItem("userID")
+            });
+            setUser((prevUser) => ({
+                ...prevUser,
+                stats: {
+                    ...prevUser.stats,
+                    bestMatch: response.data.opponent
+                        ? `V/S ${response.data.opponent}`
+                        : "Play matches to see your best match",
+                    bestMatchScore: response.data.score || "No score available"
+                }
+            }));
+        } catch (error) {
+            console.error("Error finding best match:", error);
+        }
+    }
+
+    const fetchRank = async () => {
+        try {
+            const response = await axios.post(`${BACKEND_URL}/matches/rank`, {
+                id: localStorage.getItem("userID")
+            });
+
+            setUser((prevUser) => ({
+                ...prevUser,
+                stats: {
+                    ...prevUser.stats,
+                    playerRank: response.data.rank
+                }
+            }));
+
+            console.log("Player Rank:", response.data.rank);
+        } catch (error) {
+            console.error("Error fetching player rank:", error);
+        }
+    };
+
 
     const [showPasswordModal, setShowPasswordModal] = useState(false);
     const [passwordData, setPasswordData] = useState({
@@ -269,6 +312,7 @@ const Profile = () => {
                             <div className="bg-gray-700 rounded-lg p-3">
                                 <p className="text-gray-400 text-xs sm:text-sm">Best Match</p>
                                 <p className="font-medium text-sm sm:text-base">{user.stats.bestMatch}</p>
+                                <p className="text-gray-400 text-xs sm:text-sm">Score: {user.stats.bestMatchScore}</p>
                             </div>
 
                             <div className="bg-gray-700 rounded-lg p-3 flex items-center">
@@ -279,7 +323,7 @@ const Profile = () => {
                                 </div>
                                 <div>
                                     <p className="text-gray-400 text-xs sm:text-sm">Player Rank</p>
-                                    <p className="font-medium text-sm sm:text-base">Local Rank</p>
+                                    <p className="font-medium text-sm sm:text-base">Local Rank #{user.stats.playerRank}</p>
                                 </div>
                             </div>
                         </div>

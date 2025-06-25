@@ -220,6 +220,7 @@ router.post("/score-singles", async (req, res) => {
     match.score = score;
     match.winner = winner;
     match.status = "Completed";
+    match.margin = Math.abs(winnerPoints - looserPoints);
 
     await match.save();
 
@@ -252,6 +253,105 @@ router.post("/update-status", async (req, res) => {
   } catch (error) {
     console.error("Error updating match status:", error);
     return res.status(500).json({ message: "Internal server error" });
+  }
+});
+
+router.post("/bestMatch", async (req, res) => {
+  const playerId = req.body.playerId;
+
+  if (!playerId) {
+    return res.status(400).json({ message: "Player ID is required" });
+  }
+
+  try {
+    const playerDoc = await Player.findById(playerId).select("name").lean();
+
+    if (!playerDoc) {
+      return res.status(404).json({ message: "Player not found" });
+    }
+
+    const playerName = playerDoc.name;
+
+    // Get all matches where this player was the winner
+    const matchesWon = await Match.find({ winner: playerName }).lean();
+
+    if (!matchesWon.length) {
+      return res
+        .status(200)
+        .json({ message: "No matches won by this player." });
+    }
+
+    // Sort matches in descending order by margin
+    matchesWon.sort((a, b) => {
+      const marginA = parseFloat(a.margin) || 0;
+      const marginB = parseFloat(b.margin) || 0;
+      return marginB - marginA; // Sort by margin in descending order
+    });
+
+    // Get the match with the highest margin
+    const bestMatch = matchesWon[0];
+    res.status(200).json({
+      opponent:
+        bestMatch.player1 === playerName
+          ? bestMatch.player2
+          : bestMatch.player1,
+      score: bestMatch.score,
+    });
+  } catch (error) {
+    console.error("Error fetching best match:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+});
+
+// Rank the players based on their scores
+router.get("/rankings", async (req, res) => {
+  try {
+    const players = await Player.find()
+      .sort({ "stats.totalpoints": -1 })
+      .lean();
+
+    if (!players.length) {
+      return res.status(404).json({ message: "No players found" });
+    }
+
+    const rankings = players.map((player, index) => ({
+      rank: index + 1,
+      name: player.name,
+      avatar: player.profilePic,
+      totalPoints: player.stats.totalpoints,
+    }));
+
+    res.status(200).json({ rankings });
+  } catch (error) {
+    console.error("Error fetching rankings:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+});
+
+// Fetch rank of a specific player
+router.post("/rank", async (req, res) => {
+  const playerId = req.body.id;
+
+  if (!playerId) {
+    return res.status(400).json({ message: "Player ID is required" });
+  }
+
+  try {
+    const player = await Player.findById(playerId).select("stats").lean();
+
+    if (!player) {
+      return res.status(404).json({ message: "Player not found" });
+    }
+
+    const allPlayers = await Player.find()
+      .sort({ "stats.totalpoints": -1 })
+      .lean();
+    const rank = allPlayers.findIndex((p) => p._id.toString() === playerId) + 1;
+
+    res.status(200).json({ rank });
+  } catch (error) {
+    console.error("Error fetching player rank:", error);
+    res.status(500).json({ message: "Internal server error" });
   }
 });
 
